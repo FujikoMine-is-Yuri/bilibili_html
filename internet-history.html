@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P2P蛮荒期逻辑推演器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --bg-card-hover: #334155;
+            --mint: #34d399;
+            --mint-light: #6ee7b7;
+            --mint-dark: #059669;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border: #334155;
+            --warning: #fbbf24;
+            --danger: #f87171;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px 16px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        header h1 {
+            font-size: 1.5rem;
+            color: var(--mint);
+            margin-bottom: 8px;
+        }
+
+        header p {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 20px;
+            background: var(--bg-card);
+            padding: 4px;
+            border-radius: 12px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px 8px;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: var(--mint);
+            color: var(--bg-dark);
+            font-weight: 600;
+        }
+
+        .tab-btn:focus-visible {
+            outline: 2px solid var(--mint);
+            outline-offset: 2px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            border: 1px solid var(--border);
+        }
+
+        .card h2 {
+            font-size: 1.1rem;
+            color: var(--mint-light);
+            margin-bottom: 16px;
+        }
+
+        .card h3 {
+            font-size: 1rem;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            background: var(--bg-dark);
+            border-radius: 10px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .checkbox-item:hover {
+            border-color: var(--mint-dark);
+        }
+
+        .checkbox-item:has(input:focus-visible) {
+            outline: 2px solid var(--mint);
+            outline-offset: 2px;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: var(--mint);
+            cursor: pointer;
+        }
+
+        .checkbox-item span {
+            font-size: 0.95rem;
+        }
+
+        .result-box {
+            background: var(--bg-dark);
+            border-radius: 10px;
+            padding: 16px;
+            margin-top: 16px;
+            border-left: 3px solid var(--mint);
+        }
+
+        .result-box.warning {
+            border-left-color: var(--warning);
+        }
+
+        .result-box.danger {
+            border-left-color: var(--danger);
+        }
+
+        .result-box h4 {
+            color: var(--mint-light);
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+
+        .result-box.warning h4 {
+            color: var(--warning);
+        }
+
+        .result-box.danger h4 {
+            color: var(--danger);
+        }
+
+        .result-box p {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .result-box .highlight {
+            color: var(--mint);
+            font-weight: 600;
+        }
+
+        .result-box .viewpoint {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-style: italic;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed var(--border);
+        }
+
+        .param-group {
+            margin-bottom: 20px;
+        }
+
+        .param-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .param-options {
+            display: flex;
+            gap: 8px;
+        }
+
+        .param-btn {
+            flex: 1;
+            padding: 10px;
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .param-btn:hover {
+            border-color: var(--mint-dark);
+        }
+
+        .param-btn.active {
+            background: var(--mint);
+            color: var(--bg-dark);
+            border-color: var(--mint);
+            font-weight: 600;
+        }
+
+        .param-btn:focus-visible {
+            outline: 2px solid var(--mint);
+            outline-offset: 2px;
+        }
+
+        .select-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .select-item {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .select-item label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .select-item select {
+            padding: 10px;
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .select-item select:focus-visible {
+            outline: 2px solid var(--mint);
+            outline-offset: 2px;
+            border-color: var(--mint);
+        }
+
+        .comparison-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 12px 0;
+        }
+
+        .bar-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            min-width: 80px;
+        }
+
+        .bar-track {
+            flex: 1;
+            height: 24px;
+            background: var(--bg-dark);
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--mint-dark), var(--mint));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--bg-dark);
+            transition: width 0.5s ease;
+        }
+
+        .source-section {
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        .source-section h3 {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .source-section p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        .data-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .data-btn {
+            flex: 1;
+            padding: 8px;
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+        }
+
+        .data-btn:hover {
+            border-color: var(--mint);
+            color: var(--mint);
+        }
+
+        .data-btn:focus-visible {
+            outline: 2px solid var(--mint);
+            outline-offset: 2px;
+        }
+
+        .storage-notice {
+            font-size: 0.75rem;
+            color: var(--warning);
+            margin-top: 8px;
+            display: none;
+        }
+
+        .storage-notice.show {
+            display: block;
+        }
+
+        .disclaimer {
+            background: var(--bg-dark);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 16px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        @media (max-width: 400px) {
+            .tabs {
+                flex-wrap: wrap;
+            }
+            .tab-btn {
+                flex: 1 1 30%;
+                font-size: 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>P2P蛮荒期逻辑推演器</h1>
+            <p>交互式理解中国P2P行业爆发与消亡逻辑</p>
+        </header>
+
+        <div class="tabs" role="tablist" aria-label="功能模块">
+            <button class="tab-btn active" role="tab" aria-selected="true" aria-controls="tab1" id="btn-tab1">爆发因素推演</button>
+            <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab2" id="btn-tab2">爆雷风险模拟</button>
+            <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab3" id="btn-tab3">后发优势验证</button>
+        </div>
+
+        <!-- 模块1：爆发因素组合推演 -->
+        <div class="tab-content active" id="tab1" role="tabpanel" aria-labelledby="btn-tab1">
+            <div class="card">
+                <h2>爆发因素组合推演</h2>
+                <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 16px;">
+                    原视频提出4个核心因素，选择不同组合观察行业变化
+                </p>
+                <div class="checkbox-group">
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="factor1" value="后发优势">
+                        <span>后发优势</span>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="factor2" value="三方投机">
+                        <span>三方投机（创业者+资本+投资者）</span>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="factor3" value="企业增值需求">
+                        <span>企业增值需求</span>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="factor4" value="监管红利">
+                        <span>监管红利</span>
+                    </label>
+                </div>
+                <div id="result1" class="result-box hidden">
+                    <h4 id="result1-title"></h4>
+                    <p id="result1-content"></p>
+                    <p class="viewpoint" id="result1-viewpoint"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 模块2：爆雷风险模拟台 -->
+        <div class="tab-content" id="tab2" role="tabpanel" aria-labelledby="btn-tab2">
+            <div class="card">
+                <h2>爆雷风险模拟台</h2>
+                <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 16px;">
+                    设置虚拟P2P平台参数，推演其发展命运
+                </p>
+                
+                <div class="param-group">
+                    <span class="param-label">营销投入</span>
+                    <div class="param-options" role="radiogroup" aria-label="营销投入">
+                        <button class="param-btn" data-param="marketing" data-value="low">低</button>
+                        <button class="param-btn active" data-param="marketing" data-value="mid">中</button>
+                        <button class="param-btn" data-param="marketing" data-value="high">高</button>
+                    </div>
+                </div>
+
+                <div class="param-group">
+                    <span class="param-label">风控能力</span>
+                    <div class="param-options" role="radiogroup" aria-label="风控能力">
+                        <button class="param-btn" data-param="risk" data-value="low">低</button>
+                        <button class="param-btn active" data-param="risk" data-value="mid">中</button>
+                        <button class="param-btn" data-param="risk" data-value="high">高</button>
+                    </div>
+                </div>
+
+                <div class="param-group">
+                    <span class="param-label">资金透明度</span>
+                    <div class="param-options" role="radiogroup" aria-label="资金透明度">
+                        <button class="param-btn" data-param="transparency" data-value="low">低</button>
+                        <button class="param-btn active" data-param="transparency" data-value="mid">中</button>
+                        <button class="param-btn" data-param="transparency" data-value="high">高</button>
+                    </div>
+                </div>
+
+                <div id="result2" class="result-box">
+                    <h4 id="result2-title">中等规模存活</h4>
+                    <p id="result2-content">平台在行业红利期保持中等规模发展，2016年强监管后面临合规大考。</p>
+                    <p class="viewpoint" id="result2-viewpoint"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 模块3：后发优势跨赛道验证 -->
+        <div class="tab-content" id="tab3" role="tabpanel" aria-labelledby="btn-tab3">
+            <div class="card">
+                <h2>后发优势跨赛道验证</h2>
+                <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 16px;">
+                    选择不同赛道和国家，体验"体验跃升差"模型
+                </p>
+                
+                <div class="select-group">
+                    <div class="select-item">
+                        <label for="track-select">选择赛道</label>
+                        <select id="track-select" aria-label="选择赛道">
+                            <option value="payment">移动支付</option>
+                            <option value="p2p">P2P</option>
+                        </select>
+                    </div>
+                    <div class="select-item">
+                        <label for="country-select">选择国家</label>
+                        <select id="country-select" aria-label="选择国家">
+                            <option value="china">中国</option>
+                            <option value="usa">美国</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="result3">
+                    <div class="comparison-bar">
+                        <span class="bar-label">传统方式</span>
+                        <div class="bar-track">
+                            <div class="bar-fill" id="bar-before" style="width: 30%;">3分</div>
+                        </div>
+                    </div>
+                    <div style="text-align: center; color: var(--mint); margin: 4px 0;">↓ 跃升 <span id="jump-score">7分</span></div>
+                    <div class="comparison-bar">
+                        <span class="bar-label">新业态</span>
+                        <div class="bar-track">
+                            <div class="bar-fill" id="bar-after" style="width: 100%;">10分</div>
+                        </div>
+                    </div>
+                    <div class="result-box">
+                        <p id="result3-conclusion" style="color: var(--text-primary); font-weight: 500;">
+                            现金（3分）→移动支付（10分），跃升7分→普及率全球第一
+                        </p>
+                        <p class="viewpoint">
+                            原视频核心概念：后发优势是中国互联网弯道超车的通用逻辑
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 来源说明和数据管理 -->
+        <div class="source-section">
+            <h3>视频来源</h3>
+            <p>
+                内容提炼自B站UP主老蒋《互联网简史01：P2P的疯狂和消亡（上）》（BV1ME411o7Ma）<br>
+                音频转写可能存在错漏，仅作内容梳理使用。本工具为交互式学习辅助，核心观点与数据均来自原视频，不代表工具方立场。
+            </p>
+            
+            <div class="data-actions">
+                <button class="data-btn" id="exportBtn" aria-label="导出使用记录">导出记录</button>
+                <button class="data-btn" id="importBtn" aria-label="导入使用记录">导入记录</button>
+                <input type="file" id="fileInput" accept=".json" aria-label="选择导入文件">
+            </div>
+            <p class="storage-notice" id="storageNotice">⚠️ 本地存储不可用，记录将保存在内存中</p>
+            
+            <div class="disclaimer">
+                本工具仅用于内容梳理与学习交流，不构成任何投资建议。<br>
+                工具交互逻辑为原创设计，未经科学验证。
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 存储管理
+        let memoryStorage = {};
+        let useLocalStorage = true;
+
+        try {
+            const testKey = '__test__';
+            localStorage.setItem(testKey, testKey);
+            localStorage.removeItem(testKey);
+        } catch (e) {
+            useLocalStorage = false;
+            document.getElementById('storageNotice').classList.add('show');
+        }
+
+        function saveData(key, value) {
+            const data = {
+                value,
+                timestamp: Date.now()
+            };
+            if (useLocalStorage) {
+                try {
+                    localStorage.setItem(key, JSON.stringify(data));
+                } catch (e) {
+                    memoryStorage[key] = data;
+                }
+            } else {
+                memoryStorage[key] = data;
+            }
+        }
+
+        function loadData(key) {
+            if (useLocalStorage) {
+                try {
+                    const item = localStorage.getItem(key);
+                    return item ? JSON.parse(item).value : null;
+                } catch (e) {
+                    return memoryStorage[key]?.value || null;
+                }
+            }
+            return memoryStorage[key]?.value || null;
+        }
+
+        // 记录使用历史
+        function recordUsage(module, data) {
+            const history = loadData('usageHistory') || [];
+            history.push({
+                module,
+                data,
+                time: new Date().toISOString()
+            });
+            if (history.length > 100) history.shift();
+            saveData('usageHistory', history);
+        }
+
+        // Tab切换
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tabId = btn.id.replace('btn-', '');
+                tabBtns.forEach(b => {
+                    b.classList.remove('active');
+                    b.setAttribute('aria-selected', 'false');
+                });
+                tabContents.forEach(c => c.classList.remove('active'));
+                btn.classList.add('active');
+                btn.setAttribute('aria-selected', 'true');
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+
+        // 模块1：爆发因素组合推演
+        const factorCheckboxes = document.querySelectorAll('#tab1 input[type="checkbox"]');
+        const result1 = document.getElementById('result1');
+        const result1Title = document.getElementById('result1-title');
+        const result1Content = document.getElementById('result1-content');
+        const result1Viewpoint = document.getElementById('result1-viewpoint');
+
+        const factorExplanations = {
+            '后发优势': '传统金融服务覆盖不足，互联网金融填补空白，用户接受度快速提升。',
+            '三方投机': '创业者扎堆入场、资本疯狂押注、投资者追求高收益，三方共同推进行业泡沫。',
+            '企业增值需求': '中小企业融资难，对P2P借贷有真实需求，推动平台资产端扩张。',
+            '监管红利': '早期监管空白，行业准入门槛低，各类玩家纷纷入场试水。'
+        };
+
+        function updateModule1() {
+            const checked = Array.from(factorCheckboxes).filter(cb => cb.checked);
+            const count = checked.length;
+
+            if (count === 0) {
+                result1.classList.add('hidden');
+                return;
+            }
+
+            result1.classList.remove('hidden');
+
+            if (count <= 1) {
+                const factorName = checked[0].value;
+                result1Title.textContent = '单一因素作用 · 2013年';
+                result1Content.innerHTML = `
+                    <strong>${factorName}：</strong>${factorExplanations[factorName]}<br><br>
+                    <span class="highlight">行业数据：约500-800家平台</span>
+                `;
+                result1Viewpoint.textContent = '原视频观点：单一因素不足以支撑行业爆发';
+                result1.className = 'result-box';
+            } else if (count >= 2 && count <= 3) {
+                const factors = checked.map(cb => cb.value).join('、');
+                result1Title.textContent = '多因素叠加 · 2014年';
+                result1Content.innerHTML = `
+                    组合因素：${factors}<br><br>
+                    <span class="highlight">行业数据：约1800-2000家平台</span><br>
+                    草莽特征：无系统风控、熟人拉新、野蛮生长
+                `;
+                result1Viewpoint.textContent = '原视频观点：多因素共振推动行业快速扩张，但乱象频生';
+                result1.className = 'result-box warning';
+            } else {
+                result1Title.textContent = '四因素全共振 · 2015年顶峰';
+                result1Content.innerHTML = `
+                    四大因素全部到位，行业迎来爆发式增长<br><br>
+                    <span class="highlight">行业数据：近3000家平台，借贷余额超万亿</span><br><br>
+                    对比：同期美国P2P余额约千亿人民币，不到中国一半
+                `;
+                result1Viewpoint.textContent = '原视频数据：中国P2P规模远超美国，是特殊国情下的产物';
+                result1.className = 'result-box danger';
+            }
+
+            recordUsage('爆发因素推演', { count, factors: checked.map(cb => cb.value) });
+        }
+
+        factorCheckboxes.forEach(cb => {
+            cb.addEventListener('change', updateModule1);
+        });
+
+        // 模块2：爆雷风险模拟台
+        const paramBtns = document.querySelectorAll('.param-btn');
+        const params = {
+            marketing: 'mid',
+            risk: 'mid',
+            transparency: 'mid'
+        };
+
+        function updateModule2() {
+            const isPonzi = params.marketing === 'high' && params.risk === 'low' && params.transparency === 'low';
+            
+            const result2 = document.getElementById('result2');
+            const result2Title = document.getElementById('result2-title');
+            const result2Content = document.getElementById('result2-content');
+            const result2Viewpoint = document.getElementById('result2-viewpoint');
+
+            if (isPonzi) {
+                result2Title.textContent = '💀 易租宝式庞氏骗局';
+                result2Content.innerHTML = `
+                    高营销投入快速扩大规模，低风控意味着资产质量极差，低透明度掩盖资金去向。<br><br>
+                    <span class="highlight" style="color: var(--danger);">最终结局：庞氏骗局崩盘</span><br><br>
+                    原视频披露：1年半吸金500亿、央视/高铁背书、假标自融
+                `;
+                result2Viewpoint.textContent = '原视频观点：蛮荒期行业逻辑是"拼规模不拼风控"，投资者普遍迷信背景而非资产质量';
+                result2.className = 'result-box danger';
+            } else {
+                const riskLevel = 
+                    (params.risk === 'low' || params.transparency === 'low') ? '较高' :
+                    (params.risk === 'high' && params.transparency === 'high') ? '较低' : '中等';
+                
+                const size = params.marketing === 'high' ? '较大' : params.marketing === 'low' ? '较小' : '中等';
+                
+                result2Title.textContent = '⚖️ 中等规模存活';
+                result2Content.innerHTML = `
+                    平台规模：${size}<br>
+                    风险等级：${riskLevel}<br><br>
+                    在行业红利期可维持运营，<span class="highlight">2016年强监管后面临合规大考</span>。<br>
+                    能否存活取决于后续合规改造能力。
+                `;
+                result2Viewpoint.textContent = '提示：尝试选择"高营销+低风控+低透明"组合，观察极端结果';
+                result2.className = 'result-box warning';
+            }
+
+            recordUsage('爆雷风险模拟', { ...params });
+        }
+
+        paramBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const param = btn.dataset.param;
+                const value = btn.dataset.value;
+                
+                document.querySelectorAll(`.param-btn[data-param="${param}"]`).forEach(b => {
+                    b.classList.remove('active');
+                });
+                btn.classList.add('active');
+                params[param] = value;
+                
+                updateModule2();
+            });
+        });
+
+        // 模块3：后发优势跨赛道验证
+        const trackSelect = document.getElementById('track-select');
+        const countrySelect = document.getElementById('country-select');
+
+        const experienceData = {
+            payment: {
+                china: { before: 3, after: 10, label: '现金', newLabel: '移动支付', conclusion: '现金（3分）→移动支付（10分），跃升7分→普及率全球第一' },
+                usa: { before: 7, after: 8, label: '信用卡', newLabel: '移动支付', conclusion: '信用卡（7分）→移动支付（8分），跃升1分→仅作为补充支付方式' }
+            },
+            p2p: {
+                china: { before: 2, after: 9, label: '民间借贷', newLabel: 'P2P', conclusion: '民间借贷（2分）→P2P（9分），跃升7分→行业野蛮生长后全面整改' },
+                usa: { before: 8, after: 9, label: '传统金融', newLabel: 'P2P', conclusion: '传统金融（8分）→P2P（9分），跃升1分→仅为补充业态' }
+            }
+        };
+
+        function updateModule3() {
+            const track = trackSelect.value;
+            const country = countrySelect.value;
+            const data = experienceData[track][country];
+
+            document.getElementById('bar-before').style.width = `${data.before * 10}%`;
+            document.getElementById('bar-before').textContent = `${data.before}分`;
+            document.getElementById('bar-after').style.width = `${data.after * 10}%`;
+            document.getElementById('bar-after').textContent = `${data.after}分`;
+            document.getElementById('jump-score').textContent = `${data.after - data.before}分`;
+            document.getElementById('result3-conclusion').textContent = data.conclusion;
+
+            recordUsage('后发优势验证', { track, country });
+        }
+
+        trackSelect.addEventListener('change', updateModule3);
+        countrySelect.addEventListener('change', updateModule3);
+
+        // 导出导入功能
+        document.getElementById('exportBtn').addEventListener('click', () => {
+            const history = loadData('usageHistory') || [];
+            const exportData = {
+                version: '1.0',
+                exportTime: new Date().toISOString(),
+                usageHistory: history
+            };
+            
+            const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `p2p-tracker-records-${Date.now()}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+
+        document.getElementById('importBtn').addEventListener('click', () => {
+            document.getElementById('fileInput').click();
+        });
+
+        document.getElementById('fileInput').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const data = JSON.parse(event.target.result);
+                    
+                    // 严格字段验证
+                    if (!data || typeof data !== 'object') throw new Error('格式错误');
+                    if (!data.version || typeof data.version !== 'string') throw new Error('缺少版本号');
+                    if (!Array.isArray(data.usageHistory)) throw new Error('缺少使用记录');
+                    
+                    // 验证每条记录
+                    const validRecords = data.usageHistory.filter(record => {
+                        return record && 
+                               typeof record.module === 'string' && 
+                               typeof record.data === 'object' &&
+                               typeof record.time === 'string';
+                    });
+
+                    if (validRecords.length === 0) {
+                        alert('未找到有效记录');
+                        return;
+                    }
+
+                    // 合并记录
+                    const existing = loadData('usageHistory') || [];
+                    const merged = [...existing, ...validRecords];
+                    saveData('usageHistory', merged.slice(-100));
+                    
+                    alert(`成功导入 ${validRecords.length} 条记录`);
+                } catch (err) {
+                    alert('导入失败：文件格式不正确');
+                }
+            };
+            reader.readAsText(file);
+            e.target.value = '';
+        });
+
+        // 初始化
+        updateModule2();
+    </script>
+</body>
+</html>
