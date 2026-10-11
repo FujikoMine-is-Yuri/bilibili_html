@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="dark light" />
+  <meta name="description" content="专注脉冲：将深度专注、真正休息与灵感孵化组合为一套可持续的工作节奏。" />
+  <title>Pulse Lab · 专注脉冲创造力工作台</title>
+  <style>
+    :root {
+      --bg: #0a1020; --bg2:#0e1728; --card: #121d30; --card2: #17243a;
+      --line: rgba(177,200,225,.13); --fg: #eaf2ff; --muted: #93a5bf;
+      --accent: #7ce0d5; --accent2: #7b9dfb; --warm: #ffbc8a; --red: #ff8f9a;
+      --shadow: 0 20px 75px rgba(0,0,0,.2); --radius: 23px;
+    }
+    body.light {
+      --bg: #f3f7fb; --bg2:#eaf1f9; --card: #fff; --card2: #f2f7fc;
+      --line: rgba(39,68,94,.13); --fg: #182b43; --muted: #697d97;
+      --accent: #0b9689; --accent2: #5979df; --warm: #bb6a26; --red: #db5361;
+      --shadow: 0 18px 55px rgba(37,61,104,.075);
+    }
+    * {box-sizing: border-box}
+    html {scroll-behavior:smooth}
+    body {margin:0; min-height:100vh; background:radial-gradient(ellipse at 15% -20%,rgba(73,115,180,.15),transparent 48%),radial-gradient(ellipse at 94% 10%,rgba(49,163,159,.10),transparent 32%),var(--bg);font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;color:var(--fg);line-height:1.5;transition:background .3s,color .3s}
+    button,input,textarea {font:inherit} button{cursor:pointer} button:disabled{opacity:.48;cursor:not-allowed}
+    button:focus-visible,input:focus-visible,textarea:focus-visible {outline:2px solid var(--accent);outline-offset:3px}
+    .wrap{max-width:1390px;margin:0 auto;padding:31px 34px 55px}
+    .header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-bottom:31px}
+    .brand{display:flex;align-items:center;gap:14px}
+    .logo{width:46px;height:46px;border:1px solid rgba(124,224,213,.3);border-radius:15px;display:grid;place-items:center;background:linear-gradient(135deg,rgba(124,224,213,.18),rgba(123,157,251,.1));box-shadow:0 0 25px rgba(124,224,213,.08)}
+    .logo svg{width:28px;height:28px;stroke:var(--accent);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+    .brand-name{font-size:20px;font-weight:800;letter-spacing:.01em}.brand-name span{color:var(--accent)}
+    .brand-sub{font-size:11px;color:var(--muted);letter-spacing:.13em;margin-top:2px}
+    .header-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:flex-end}
+    .date{font-size:13px;color:var(--muted);padding-right:4px}
+    .iconbtn,.outline-btn,.ghostbtn{border:1px solid var(--line);background:rgba(128,155,195,.055);color:var(--fg);border-radius:11px;padding:9px 13px;font-size:12px;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:.2s}
+    .iconbtn:hover,.outline-btn:hover,.ghostbtn:hover{background:rgba(128,155,195,.13);border-color:rgba(124,224,213,.35)}
+    .iconbtn{width:39px;height:39px;padding:0;font-size:18px}
+    .page-title{display:flex;align-items:flex-end;justify-content:space-between;gap:15px;margin-bottom:24px}
+    h1{margin:0;font-size:clamp(24px,3.2vw,36px);letter-spacing:-.04em;line-height:1.2;font-weight:790}
+    .lead{margin:10px 0 0;font-size:13px;color:var(--muted)}
+    .eyebrow{font-size:11px;color:var(--accent);font-weight:800;letter-spacing:.16em;margin-bottom:10px}
+    .daily-marker{border:1px solid var(--line);padding:9px 14px;border-radius:11px;color:var(--muted);font-size:12px;white-space:nowrap}
+    .daily-marker b{color:var(--accent);font-size:15px}
+    .primary-grid{display:grid;grid-template-columns:minmax(0,1.26fr) minmax(365px,1fr);gap:18px;align-items:stretch}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+    .timer-card{position:relative;background:radial-gradient(ellipse at 50% 20%,rgba(52,151,151,.12),transparent 55%),linear-gradient(154deg,var(--card),var(--bg2));padding:27px 32px 23px;min-height:584px}
+    .timer-card.break{background:radial-gradient(ellipse at 50% 20%,rgba(255,178,119,.1),transparent 55%),linear-gradient(154deg,var(--card),var(--bg2))}
+    .section-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .section-label{display:flex;gap:8px;align-items:center;font-size:14px;font-weight:750}
+    .small-muted{font-size:12px;color:var(--muted)}
+    .status-pill{font-size:11px;letter-spacing:.02em;color:var(--accent);background:rgba(124,224,213,.08);border:1px solid rgba(124,224,213,.23);padding:6px 11px;border-radius:99px;white-space:nowrap}
+    .timer-card.break .status-pill{color:var(--warm);background:rgba(255,188,138,.09);border-color:rgba(255,188,138,.24)}
+    .ring-container{position:relative;margin:10px auto 0;width:min(365px,100%);aspect-ratio:1;display:grid;place-items:center}
+    .timer-ring{width:100%;height:100%;transform:rotate(-90deg);overflow:visible}
+    .ring-track,.ring-prog{fill:none;stroke-width:8}
+    .ring-track{stroke:var(--line)}
+    .ring-prog{stroke:var(--accent);stroke-linecap:round;stroke-dasharray:942.478;stroke-dashoffset:0;filter:drop-shadow(0 0 7px rgba(124,224,213,.28));transition:stroke-dashoffset .28s linear,stroke .25s}
+    .timer-card.break .ring-prog{stroke:var(--warm);filter:drop-shadow(0 0 7px rgba(255,188,138,.25))}
+    .ring-inner{position:absolute;display:flex;flex-direction:column;align-items:center;text-align:center;gap:5px}
+    .ring-tag{font-size:11px;letter-spacing:.22em;color:var(--muted);font-weight:750}
+    .time{font-variant-numeric:tabular-nums;font-size:clamp(52px,5.1vw,78px);line-height:1.17;font-weight:750;letter-spacing:-.07em}
+    .ring-sub{font-size:13px;color:var(--muted);max-width:240px}
+    .timer-controls{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:-1px}
+    .primary-btn{background:linear-gradient(125deg,#8debdc,#6dbece);color:#10293a;border:0;border-radius:13px;padding:13px 26px;font-size:14px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;gap:9px;box-shadow:0 9px 26px rgba(124,224,213,.15);transition:filter .2s,transform .2s}
+    .primary-btn:hover{filter:brightness(1.07);transform:translateY(-1px)}
+    .timer-card.break .primary-btn{background:linear-gradient(125deg,#ffd1a6,#efad83);box-shadow:0 9px 26px rgba(255,188,138,.12)}
+    .control-btn{min-width:98px;padding:12px 16px;font-size:13px;border-radius:13px}
+    .timer-hint{text-align:center;color:var(--muted);font-size:11px;margin-top:15px;min-height:18px}
+    .settings{border-top:1px solid var(--line);margin-top:23px;padding-top:20px}
+    .setting-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+    .presets{display:flex;gap:8px;flex-wrap:wrap}
+    .preset{font-size:11px;color:var(--muted);border:1px solid var(--line);background:transparent;border-radius:9px;padding:7px 11px;transition:.18s}
+    .preset.active{color:var(--accent);border-color:rgba(124,224,213,.5);background:rgba(124,224,213,.075)}
+    .setting-fields{display:flex;gap:15px;align-items:center;margin-top:14px;flex-wrap:wrap}
+    .setting-fields label{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:8px}
+    .num{width:67px;background:var(--card2);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:6px 7px;text-align:center;font-size:12px}
+    .num:disabled{opacity:.55}.timer-footer{display:flex;gap:10px;justify-content:space-between;margin-top:15px;align-items:center;flex-wrap:wrap}
+    .right-stack{display:flex;flex-direction:column;gap:18px;min-width:0}
+    .plan-card{padding:25px 25px 20px;flex:1;min-height:415px}
+    .micro{font-size:11px;color:var(--muted);margin-top:8px}
+    .question-label{display:block;margin:20px 0 8px;font-size:12px;color:var(--muted);font-weight:650}
+    .question-input,.text-input,.text-area{width:100%;border:1px solid var(--line);border-radius:12px;background:var(--card2);color:var(--fg);padding:12px 14px;outline:0;font-size:13px;transition:border .2s}
+    .question-input:focus,.text-input:focus,.text-area:focus{border-color:var(--accent)}
+    input::placeholder,textarea::placeholder{color:var(--muted);opacity:.8}
+    .mini-head{display:flex;justify-content:space-between;align-items:center;margin:21px 0 10px}
+    .mini-head h3{margin:0;font-size:13px;font-weight:730}
+    .countbadge{font-size:11px;color:var(--muted);background:var(--card2);border-radius:8px;padding:4px 8px}
+    .task-form,.note-form{display:flex;gap:8px;align-items:stretch}
+    .task-form .text-input,.note-form .text-input{flex:1;min-width:0}
+    .addbtn{width:43px;flex:0 0 43px;border:1px solid rgba(124,224,213,.3);border-radius:11px;background:rgba(124,224,213,.13);font-size:22px;color:var(--accent)}
+    .task-list{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+    .task{display:flex;align-items:center;gap:9px;background:var(--card2);border:1px solid transparent;border-radius:12px;padding:10px 9px;min-height:47px}
+    .task.selected{border-color:rgba(124,224,213,.34);background:linear-gradient(90deg,rgba(124,224,213,.065),var(--card2))}
+    .task.done{opacity:.62}
+    .radio-task{width:18px;height:18px;flex:0 0 18px;accent-color:var(--accent);cursor:pointer}
+    .task-title{flex:1;min-width:0;color:var(--fg);font-size:12px;overflow-wrap:anywhere;cursor:pointer}
+    .task.done .task-title{text-decoration:line-through;color:var(--muted)}
+    .task-count{font-size:10px;color:var(--muted);white-space:nowrap}
+    .tiny-btn{background:transparent;color:var(--muted);font-size:15px;border:0;padding:3px 5px;border-radius:5px}
+    .tiny-btn:hover{color:var(--red);background:rgba(255,133,152,.08)}
+    .empty{color:var(--muted);font-size:12px;text-align:center;border:1px dashed var(--line);padding:17px 10px;border-radius:12px;margin-top:10px}
+    .inspiration{border:1px solid rgba(255,188,138,.2);background:linear-gradient(120deg,rgba(255,188,138,.08),rgba(255,188,138,.025));border-radius:15px;padding:16px 19px}
+    .inspiration h3{font-size:12px;color:var(--warm);margin:0 0 6px;font-weight:750;display:flex;align-items:center;gap:8px}
+    .inspiration p{font-size:13px;line-height:1.65;margin:0;color:var(--fg)}
+    .suggestion-actions{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:10px}
+    .suggestion-actions small{color:var(--muted);font-size:10px}
+    .linkbtn{color:var(--warm);background:none;border:0;padding:0;font-size:11px}
+    .stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;margin:19px 0}
+    .stat{padding:21px 22px}
+    .stat-label{font-size:11px;color:var(--muted);display:flex;gap:8px;align-items:center}
+    .stat-label .dot{width:7px;height:7px;border-radius:50%;background:var(--accent)}
+    .stat:nth-child(2) .dot{background:var(--accent2)}.stat:nth-child(3) .dot{background:var(--warm)}.stat:nth-child(4) .dot{background:#c3a1ff}
+    .stat-value{font-size:29px;font-weight:790;letter-spacing:-.045em;margin:8px 0 2px;font-variant-numeric:tabular-nums}
+    .stat-value span{font-size:12px;color:var(--muted);font-weight:500;letter-spacing:0;margin-left:4px}
+    .stat-caption{font-size:10px;color:var(--muted)}
+    .bottom-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
+    .work-card{padding:25px;min-height:345px}
+    .work-card p.desc{font-size:12px;color:var(--muted);margin:8px 0 19px}
+    .text-area{resize:vertical;min-height:88px;line-height:1.7}
+    .subactions{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px}
+    .small-primary{border:0;border-radius:10px;background:rgba(124,224,213,.13);color:var(--accent);font-weight:700;font-size:12px;padding:10px 14px}
+    .notes{max-height:220px;overflow-y:auto;display:flex;flex-direction:column;gap:9px;margin-top:19px}
+    .note{display:flex;align-items:flex-start;gap:10px;border-top:1px solid var(--line);padding:11px 0 0}
+    .note-content{flex:1;min-width:0;font-size:12px;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6}
+    .note-meta{font-size:10px;color:var(--muted);margin-top:4px}
+    .note-empty{padding:20px 2px;font-size:12px;color:var(--muted);text-align:center}
+    .insight{border-top:1px solid var(--line);margin-top:17px;padding-top:12px;font-size:11px;color:var(--muted)}
+    .chart-card{margin-top:19px;padding:23px 26px 21px}
+    .chart-frame{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin-top:24px;height:117px;border-bottom:1px solid var(--line)}
+    .chart-col{flex:1;display:flex;align-items:center;flex-direction:column;justify-content:flex-end;gap:8px;height:100%;min-width:0;position:relative}
+    .chart-bar{background:linear-gradient(180deg,var(--accent),rgba(124,224,213,.27));width:min(42px,72%);border-radius:7px 7px 0 0;min-height:3px;transition:height .25s;position:relative}
+    .chart-bar.today{background:linear-gradient(180deg,var(--accent2),rgba(123,157,251,.28))}
+    .chart-bar:hover{filter:brightness(1.18)}
+    .chart-figure{position:absolute;top:-21px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--muted);white-space:nowrap}
+    .chart-days{display:grid;grid-template-columns:repeat(7,1fr);gap:14px;margin-top:10px;text-align:center;font-size:10px;color:var(--muted)}
+    .footer{display:flex;gap:15px;align-items:center;justify-content:space-between;margin-top:22px;padding:0 4px;color:var(--muted);font-size:11px;flex-wrap:wrap}
+    .footer-actions{display:flex;gap:10px;align-items:center}
+    .footer-actions button{border:0;background:none;color:var(--muted);font-size:11px;padding:4px 0}
+    .footer-actions button:hover{color:var(--accent)}
+    #toast{position:fixed;bottom:24px;left:50%;transform:translate(-50%,16px);background:#263b4d;color:#f5fffd;padding:12px 20px;border:1px solid rgba(124,224,213,.22);border-radius:12px;box-shadow:0 16px 48px rgba(0,0,0,.3);font-size:13px;opacity:0;visibility:hidden;z-index:100;transition:.3s;max-width:min(95vw,500px);text-align:center}
+    #toast.show{transform:translate(-50%,0);opacity:1;visibility:visible}
+    .dialog-wrap{position:fixed;inset:0;background:rgba(2,9,20,.76);backdrop-filter:blur(9px);display:grid;place-items:center;padding:16px;z-index:200}
+    .dialog-wrap[hidden]{display:none}
+    .dialog{background:var(--card);border:1px solid var(--line);border-radius:23px;max-width:445px;width:100%;box-shadow:0 35px 100px rgba(0,0,0,.4);padding:28px}
+    .dialog-tag{color:var(--accent);font-size:11px;font-weight:700;letter-spacing:.14em}
+    .dialog h2{font-size:24px;margin:10px 0 6px}.dialog p{font-size:12px;color:var(--muted);margin:0 0 18px}
+    .dialog textarea{min-height:100px}
+    .dialog-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:15px}
+    .zen .wrap{max-width:950px;display:flex;flex-direction:column;align-items:stretch;min-height:100vh;justify-content:center}
+    .zen .page-title,.zen .right-stack,.zen .stats,.zen .bottom-grid,.zen .chart-card,.zen .footer{display:none}
+    .zen .primary-grid{display:block}.zen .timer-card{min-height:620px;box-shadow:0 0 100px rgba(124,224,213,.05)}
+    .zen .timer-card .settings{display:none}.zen .ring-container{width:min(430px,100%)}
+    @media(max-width:970px){.primary-grid{grid-template-columns:1fr}.right-stack{display:grid;grid-template-columns:1fr 1fr;align-items:stretch}.plan-card{min-height:0}.stats{gap:11px}.timer-card{min-height:0}}
+    @media(max-width:670px){.wrap{padding:22px 15px 30px}.header{align-items:flex-start}.brand-name{font-size:17px}.header-right{gap:7px}.date{display:none}.page-title{align-items:flex-start;flex-direction:column}.primary-grid{gap:13px}.right-stack{grid-template-columns:1fr;gap:13px}.timer-card{padding:21px 17px 19px}.ring-container{width:min(340px,100%);margin:12px auto 0}.time{font-size:60px}.plan-card,.work-card{padding:20px}.stats{grid-template-columns:1fr 1fr;gap:11px;margin:13px 0}.stat{padding:17px}.stat-value{font-size:25px}.bottom-grid{grid-template-columns:1fr;gap:13px}.chart-card{margin-top:13px;padding:20px}.chart-frame{gap:8px}.chart-days{gap:8px}.footer{align-items:flex-start}.control-btn{min-width:78px}.presets{gap:6px}.setting-head{align-items:flex-start;flex-direction:column}.timer-controls{gap:8px}.primary-btn{padding:12px 18px}.zen .wrap{justify-content:flex-start}}
+    @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="header">
+      <div class="brand"><div class="logo" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M2 17h6l3-10 6 19 4-12 3 3h6"/></svg></div><div><div class="brand-name">Pulse <span>Lab.</span></div><div class="brand-sub">FOCUS · REST · CREATE</div></div></div>
+      <div class="header-right"><span class="date" id="todayDate"></span><button class="outline-btn" id="zenBtn" title="隐藏其他模块，只保留计时器">◫ <span id="zenText">沉浸模式</span></button><button class="iconbtn" id="themeBtn" aria-label="切换深色或浅色主题" title="切换主题">☼</button></div>
+    </header>
+    <div class="page-title"><div><div class="eyebrow">YOUR DAILY RHYTHM</div><h1>让专注有锋芒，让休息有价值。</h1><p class="lead">不是把每一分钟填满，而是让每一轮深度思考真正发生。</p></div><div class="daily-marker">今日节律 <b id="marker">0</b> / 3 次专注脉冲</div></div>
+    <main>
+      <section class="primary-grid" aria-label="专注计时与任务规划">
+        <div class="card timer-card" id="timerCard">
+          <div class="section-head"><div class="section-label"><span aria-hidden="true">◉</span><span id="timerHeading">深度专注</span></div><span class="status-pill" id="timerStatus">准备开始</span></div>
+          <div class="ring-container">
+            <svg class="timer-ring" viewBox="0 0 340 340" aria-hidden="true"><circle class="ring-track" cx="170" cy="170" r="150"></circle><circle class="ring-prog" id="progressRing" cx="170" cy="170" r="150"></circle></svg>
+            <div class="ring-inner"><div class="ring-tag" id="ringTag">FOCUS SESSION</div><div class="time" id="timeText" role="timer" aria-live="off">90:00</div><div class="ring-sub" id="ringSub">选定一项重要任务，屏蔽干扰</div></div>
+          </div>
+          <div class="timer-controls"><button class="primary-btn" id="startPauseBtn">▶ 开始专注</button><button class="outline-btn control-btn" id="resetBtn">↺ 重置</button><button class="outline-btn control-btn" id="skipBtn">↪ 去休息</button></div>
+          <div class="timer-hint" id="timerHint">完成专注后，再进入真正的休息；两阶段不会自动连续播放。</div>
+          <div class="settings">
+            <div class="setting-head"><div class="section-label" style="font-size:12px">节奏设置 <span class="small-muted">· 找到适合自己的速度</span></div><div class="presets" role="group" aria-label="专注与休息时长预设"><button class="preset" data-focus="25" data-break="5">25 / 5</button><button class="preset" data-focus="50" data-break="10">50 / 10</button><button class="preset" data-focus="90" data-break="20">90 / 20</button></div></div>
+            <div class="setting-fields"><label for="focusMin">专注 <input class="num" id="focusMin" type="number" min="5" max="180" step="5" value="90" inputmode="numeric" /> 分钟</label><label for="breakMin">休息 <input class="num" id="breakMin" type="number" min="1" max="60" step="1" value="20" inputmode="numeric" /> 分钟</label><span class="small-muted" id="settingsHint">仅在计时暂停或未开始时可修改</span></div>
+            <div class="timer-footer"><span class="small-muted">⌨ 空格键：开始 / 暂停（输入时无效）</span><button class="ghostbtn" id="notifyBtn" title="允许系统通知用于完成提醒">♧ 开启完成提醒</button></div>
+          </div>
+        </div>
+        <div class="right-stack">
+          <div class="card plan-card">
+            <div class="section-head"><div class="section-label">◎ 今天最重要的事</div><span class="small-muted">最多保留 3 项待完成任务</span></div>
+            <p class="micro">明确目标，才值得投入一轮珍贵的深度专注。</p>
+            <label class="question-label" for="coreQuestion">这一轮，我真正要解决的核心问题是？</label>
+            <input class="question-input" type="text" maxlength="180" id="coreQuestion" placeholder="例如：如何让实验结果支持我的核心创新点？" />
+            <div class="mini-head"><h3>今日优先级</h3><span class="countbadge" id="taskBadge">0 / 3 项</span></div>
+            <form id="taskForm" class="task-form"><input id="taskInput" class="text-input" type="text" maxlength="120" autocomplete="off" placeholder="输入一件值得专注的事…" aria-label="添加任务" /><button class="addbtn" type="submit" aria-label="添加任务">+</button></form>
+            <div class="task-list" id="taskList"></div>
+          </div>
+          <div class="inspiration"><h3>✧ <span id="promptTitle">创造力提示</span></h3><p id="promptText">你不需要同时解决所有问题。先为一个值得解决的问题创造不被打扰的空间。</p><div class="suggestion-actions"><small id="promptFoot">思考的深度，比忙碌的密度更重要</small><button id="promptBtn" class="linkbtn">换一条 ↻</button></div></div>
+        </div>
+      </section>
+      <section class="stats" aria-label="今日效率统计"><div class="card stat"><div class="stat-label"><i class="dot"></i> 完成专注脉冲</div><div class="stat-value" id="statFocus">0<span>次</span></div><div class="stat-caption">值得庆祝的全神贯注</div></div><div class="card stat"><div class="stat-label"><i class="dot"></i> 深度专注时间</div><div class="stat-value" id="statTime">0<span>分钟</span></div><div class="stat-caption">仅记录完整完成的时段</div></div><div class="card stat"><div class="stat-label"><i class="dot"></i> 充分休息</div><div class="stat-value" id="statBreaks">0<span>次</span></div><div class="stat-caption">每次休息也是重要投入</div></div><div class="card stat"><div class="stat-label"><i class="dot"></i> 灵感捕获</div><div class="stat-value" id="statIdeas">0<span>条</span></div><div class="stat-caption">不急着判断，让想法留存</div></div></section>
+      <section class="bottom-grid" aria-label="杂念暂存与创意孵化">
+        <div class="card work-card"><div class="section-head"><div class="section-label">↗ 杂念停车场</div><span class="countbadge" id="distractionCount">0 条</span></div><p class="desc">专注时突然想起其他事情？写下来，然后立刻回到核心任务。</p><form id="distractionForm" class="note-form"><input class="text-input" type="text" maxlength="240" id="distractionInput" autocomplete="off" placeholder="例如：稍后回复一封邮件…" aria-label="暂存杂念" /><button class="addbtn" type="submit" aria-label="暂存杂念">+</button></form><div class="notes" id="distractionList"></div><div class="insight">🗃 暂存不是逃避，而是避免任务切换带来的注意力残留。</div></div>
+        <div class="card work-card"><div class="section-head"><div class="section-label">✧ 灵感孵化器</div><span class="countbadge" id="ideasCount">0 条灵感</span></div><p class="desc">散步或休息后灵光一现？先捕获，不需要立刻展开工作。</p><form id="ideaForm"><textarea class="text-area" maxlength="1200" id="ideaInput" placeholder="写下刚刚出现的新连接、新假设、出乎意料的想法…" aria-label="记录灵感"></textarea><div class="subactions"><span class="small-muted">放松有时也是创造性思考的一部分</span><button type="submit" class="small-primary">＋ 保存灵感</button></div></form><div class="notes" id="ideaList"></div></div>
+      </section>
+      <section class="card chart-card" aria-label="最近七天专注趋势"><div class="section-head"><div><div class="section-label">▥ 最近 7 天 · 深度专注趋势</div><div class="micro">只统计完整完成的专注阶段；比较趋势，而不是追逐数字。</div></div><span class="countbadge" id="weekSum">7 天共 0 分钟</span></div><div class="chart-frame" id="chartBars"></div><div class="chart-days" id="chartDays"></div></section>
+    </main>
+    <footer class="footer"><span>节奏不是必须遵守的生理定律。按睡眠、任务与个人状态调整时长，休息时尽量离开屏幕。</span><div class="footer-actions"><button id="exportBtn">↓ 导出我的记录</button><span>·</span><button id="clearBtn">清空本地数据</button><span>·</span><span>数据仅存于当前浏览器</span></div></footer>
+  </div>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <div id="reflectionModal" class="dialog-wrap" hidden><div class="dialog" role="dialog" aria-modal="true" aria-labelledby="reflectionTitle"><div class="dialog-tag">SESSION COMPLETE ✦</div><h2 id="reflectionTitle">这一轮，做得很好。</h2><p>你的专注已经记录。用一句话留下进展，再让自己真正休息。</p><label class="question-label" for="reflectionInput">本轮的进展 / 下一步（可选）</label><textarea id="reflectionInput" class="text-area" maxlength="500" placeholder="例如：厘清了攻击假设，但对照实验还需要补充…"></textarea><div class="dialog-actions"><button id="skipReflection" class="outline-btn">暂不记录</button><button id="saveReflection" class="primary-btn">保存并去休息</button></div></div></div>
+<script>
+(() => {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const STORAGE_KEY = 'pulse-lab-v1';
+  const localDay = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,8);
+  const defaultState = () => ({settings:{focus:90,break:20,theme:'dark',sound:false},timer:{phase:'focus',remaining:5400,length:5400,endsAt:null,running:false,sessionTask:null},tasks:[],selectedTask:null,question:'',distractions:[],ideas:[],sessions:[],promptIndex:0});
+  function load(){try{const raw=localStorage.getItem(STORAGE_KEY);if(!raw)return defaultState();const parsed=JSON.parse(raw),def=defaultState();return {...def,...parsed,settings:{...def.settings,...parsed.settings},timer:{...def.timer,...parsed.timer},tasks:Array.isArray(parsed.tasks)?parsed.tasks:[],sessions:Array.isArray(parsed.sessions)?parsed.sessions:[],ideas:Array.isArray(parsed.ideas)?parsed.ideas:[],distractions:Array.isArray(parsed.distractions)?parsed.distractions:[]};}catch(e){return defaultState();}}
+  let s=load(), toastHandle=null, lastActiveMinute=-1;
+  const save=()=>{try{localStorage.setItem(STORAGE_KEY,JSON.stringify(s));}catch(e){/* In private mode, in-memory session still works. */}};
+  const toast=msg=>{const el=$('toast');el.textContent=msg;el.classList.add('show');clearTimeout(toastHandle);toastHandle=setTimeout(()=>el.classList.remove('show'),3600)};
+  const focusPrompts=[
+    ['创造力提示','你不需要同时解决所有问题。先为一个值得解决的问题创造不被打扰的空间。','思考的深度，比忙碌的密度更重要'],
+    ['收窄问题','如果这轮只允许取得一项进展，哪一项最能推动整个项目？','单一、具体、可描述的目标更容易投入'],
+    ['打破惯性','试着问自己：我现在默认成立的一个假设，真的有证据吗？','复杂问题常常从一个好问题开始'],
+    ['深入而非切换','碰到困难时，先在草稿纸写出卡住的地方，不必立刻去看消息。','先辨认阻碍，再寻找解法']
+  ];
+  const breakPrompts=[
+    ['真正休息','离开屏幕，缓慢走动一会儿。不要拿起手机接收新的信息。','不用追求任何产出'],
+    ['视觉放松','走到窗边，看看远处的树、天空或建筑。放松肩颈。','让注意力从任务中撤离'],
+    ['自由联想','不用刻意想刚刚的问题。允许大脑自由游走，灵感出现时再记下。','不必强迫灵感发生'],
+    ['身体恢复','喝水、轻度伸展或闭目休息。让这段时间真正属于恢复。','休息并不是另一项绩效任务']
+  ];
+  function setupDate(){const d=new Date();$('todayDate').textContent=new Intl.DateTimeFormat('zh-CN',{year:'numeric',month:'long',day:'numeric',weekday:'long'}).format(d)}
+  function playTone(){try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;const ctx=new AC();[0,0.21,0.42].forEach((t,i)=>{const osc=ctx.createOscillator(),gain=ctx.createGain();osc.type='sine';osc.frequency.value=[660,784,880][i];gain.gain.setValueAtTime(0.0001,ctx.currentTime+t);gain.gain.exponentialRampToValueAtTime(.075,ctx.currentTime+t+.015);gain.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+t+.17);osc.connect(gain);gain.connect(ctx.destination);osc.start(ctx.currentTime+t);osc.stop(ctx.currentTime+t+.18)});setTimeout(()=>ctx.close().catch(()=>{}),1200)}catch(e){}}
+  function notification(msg){if(s.settings.sound)playTone();if('Notification' in window&&Notification.permission==='granted'&&document.hidden){try{new Notification('Pulse Lab · 阶段完成',{body:msg})}catch(e){}}}
+  const fmt=seconds=>{const n=Math.max(0,Math.ceil(seconds)),m=Math.floor(n/60),ss=n%60;return `${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}`};
+  function actualRemaining(){return s.timer.running&&s.timer.endsAt?Math.max(0,Math.ceil((s.timer.endsAt-Date.now())/1000)):Math.max(0,s.timer.remaining)}
+  function chooseNextPhase(){s.timer.phase=s.timer.phase==='focus'?'break':'focus';s.timer.length=(s.timer.phase==='focus'?s.settings.focus:s.settings.break)*60;s.timer.remaining=s.timer.length;s.timer.running=false;s.timer.endsAt=null;s.timer.sessionTask=null;save();renderTimer();renderPrompt()}
+  function finishPhase(){
+    if(!s.timer.running)return;
+    const phase=s.timer.phase,mins=Math.round(s.timer.length/60);
+    s.timer.remaining=0;s.timer.running=false;s.timer.endsAt=null;
+    s.sessions.push({id:uid(),date:localDay(),time:new Date().toISOString(),phase,minutes:mins,taskId:s.timer.sessionTask||null,taskName:s.tasks.find(t=>t.id===s.timer.sessionTask)?.title||'自由专注',reflection:''});
+    if(phase==='focus'&&s.timer.sessionTask){const task=s.tasks.find(t=>t.id===s.timer.sessionTask);if(task)task.pulses=(task.pulses||0)+1}
+    save();notification(phase==='focus'?'专注阶段结束。起身休息，让思维自由游走。':'休息结束。准备好后再开始下一轮。');
+    chooseNextPhase();renderEverything();
+    if(phase==='focus'){$('reflectionInput').value='';$('reflectionModal').hidden=false;setTimeout(()=>$('reflectionInput').focus(),60)}
+    else toast('完成一轮真正的休息。现在可以继续深度专注。');
+  }
+  function updateTimer(){if(s.timer.running){const rem=actualRemaining();if(rem===0){finishPhase();return;}s.timer.remaining=rem;}renderTimerClock();const nowMin=Math.floor(Date.now()/60000);if(lastActiveMinute!==nowMin){lastActiveMinute=nowMin;renderStats();setupDate()}}
+  function renderTimerClock(){const t=s.timer,rem=actualRemaining(),display=fmt(rem);$('timeText').textContent=display;document.title=`${t.running?display+' · ':''}Pulse Lab · ${t.phase==='focus'?'深度专注':'真正休息'}`;const circumference=2*Math.PI*150,percent=t.length>0?1-rem/t.length:0;$('progressRing').style.strokeDasharray=String(circumference);$('progressRing').style.strokeDashoffset=String(circumference*Math.max(0,Math.min(1,percent)))}
+  function renderTimer(){const t=s.timer,focus=t.phase==='focus';$('timerCard').classList.toggle('break',!focus);$('timerHeading').textContent=focus?'深度专注':'彻底休息';$('timerStatus').textContent=t.running?'正在'+(focus?'专注':'恢复'):t.remaining<t.length?'已暂停':'准备开始';$('ringTag').textContent=focus?'FOCUS SESSION':'RECOVERY SESSION';$('ringSub').textContent=focus?(s.tasks.find(v=>v.id===(t.sessionTask||s.selectedTask))?.title||'屏蔽干扰，攻克一件重要的事'):'让思绪自由游走，暂时离开屏幕';$('startPauseBtn').textContent=t.running?'Ⅱ 暂停计时':focus?'▶ '+(t.remaining<t.length?'继续专注':'开始专注'):'▶ '+(t.remaining<t.length?'继续休息':'开始休息');$('skipBtn').textContent=focus?'↪ 去休息':'↪ 回专注';$('timerHint').textContent=focus?'专注期间只做一件事。杂念出现时，放进下方“停车场”。':'尽可能离开屏幕。休息不是刷手机，也不必强迫自己产生灵感。';$('focusMin').value=s.settings.focus;$('breakMin').value=s.settings.break;['focusMin','breakMin'].forEach(id=>$(id).disabled=t.running);document.querySelectorAll('.preset').forEach(b=>{b.disabled=t.running;b.classList.toggle('active',Number(b.dataset.focus)===s.settings.focus&&Number(b.dataset.break)===s.settings.break)});renderTimerClock()}
+  function startPause(){const t=s.timer;if(t.running){t.remaining=actualRemaining();t.running=false;t.endsAt=null;toast(t.phase==='focus'?'已暂停专注计时':'已暂停休息计时')}else{if(t.remaining<=0){t.remaining=t.length;}if(t.phase==='focus'&&!t.sessionTask)t.sessionTask=s.selectedTask;t.endsAt=Date.now()+t.remaining*1000;t.running=true;}save();renderTimer()}
+  function resetTimer(){if(s.timer.running&&!confirm('正在计时，确定要重置当前阶段吗？本轮将不计入统计。'))return;s.timer.running=false;s.timer.endsAt=null;s.timer.length=(s.timer.phase==='focus'?s.settings.focus:s.settings.break)*60;s.timer.remaining=s.timer.length;s.timer.sessionTask=null;save();renderTimer();toast('已重置当前计时阶段')}
+  function skipPhase(){if(s.timer.running&&!confirm('确定要提前结束当前阶段吗？未完成的阶段不会计入统计。'))return;chooseNextPhase();renderEverything();toast(s.timer.phase==='break'?'已切换到休息阶段':'已切换到专注阶段')}
+  function updateSettings(){if(s.timer.running)return;const f=Number($('focusMin').value),b=Number($('breakMin').value);if(!Number.isFinite(f)||!Number.isFinite(b)||f<5||f>180||b<1||b>60){$('focusMin').value=s.settings.focus;$('breakMin').value=s.settings.break;toast('专注时长 5–180 分钟，休息时长 1–60 分钟');return}s.settings.focus=f;s.settings.break=b;s.timer.length=(s.timer.phase==='focus'?f:b)*60;s.timer.remaining=s.timer.length;s.timer.sessionTask=null;save();renderTimer()}
+  function preset(f,b){if(s.timer.running)return;s.settings.focus=f;s.settings.break=b;s.timer.length=(s.timer.phase==='focus'?f:b)*60;s.timer.remaining=s.timer.length;s.timer.sessionTask=null;save();renderTimer();toast(`已切换到 ${f} 分钟专注 / ${b} 分钟休息`)}
+  function renderTasks(){const list=$('taskList');list.replaceChildren();const undone=s.tasks.filter(t=>!t.done);$('taskBadge').textContent=`${undone.length} / 3 项`;
+    if(!s.tasks.length){const el=document.createElement('div');el.className='empty';el.textContent='还没有优先任务。写下今天最值得完成的一件事吧。';list.append(el);return;}
+    s.tasks.forEach(t=>{const row=document.createElement('div');row.className=`task${s.selectedTask===t.id?' selected':''}${t.done?' done':''}`;
+      const checkbox=document.createElement('input');checkbox.type='checkbox';checkbox.className='radio-task';checkbox.checked=!!t.done;checkbox.setAttribute('aria-label','完成任务：'+t.title);checkbox.addEventListener('change',()=>{t.done=checkbox.checked;if(t.done&&s.selectedTask===t.id)s.selectedTask=s.tasks.find(v=>!v.done)?.id||null;save();renderTasks();renderTimer()});
+      const label=document.createElement('div');label.className='task-title';label.textContent=t.title;label.title='点击设为当前专注任务';label.addEventListener('click',()=>{if(t.done)return;s.selectedTask=t.id;save();renderTasks();renderTimer()});
+      const count=document.createElement('span');count.className='task-count';count.textContent=t.pulses?`${t.pulses} 次脉冲`:(s.selectedTask===t.id?'当前任务':'');
+      const del=document.createElement('button');del.className='tiny-btn';del.type='button';del.textContent='×';del.title='删除任务';del.setAttribute('aria-label','删除任务：'+t.title);del.addEventListener('click',()=>{s.tasks=s.tasks.filter(v=>v.id!==t.id);if(s.selectedTask===t.id)s.selectedTask=s.tasks.find(v=>!v.done)?.id||null;save();renderTasks();renderTimer()});
+      row.append(checkbox,label,count,del);list.append(row);
+    });
+  }
+  function addTask(){const title=$('taskInput').value.trim();if(!title)return;if(s.tasks.filter(t=>!t.done).length>=3){toast('今天最多设置 3 项待完成的重要任务。先完成或删除一项。');return;}const t={id:uid(),title,done:false,pulses:0};s.tasks.push(t);if(!s.selectedTask)s.selectedTask=t.id;$('taskInput').value='';save();renderTasks();renderTimer();}
+  function noteElement(item,type){const note=document.createElement('div');note.className='note';const body=document.createElement('div');body.style.flex='1';body.style.minWidth='0';const content=document.createElement('div');content.className='note-content';content.textContent=item.text;const when=document.createElement('div');when.className='note-meta';when.textContent=new Date(item.time).toLocaleString('zh-CN',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'});body.append(content,when);const del=document.createElement('button');del.className='tiny-btn';del.textContent='×';del.title='删除记录';del.setAttribute('aria-label','删除记录');del.addEventListener('click',()=>{s[type]=s[type].filter(v=>v.id!==item.id);save();renderNotes();renderStats()});note.append(body,del);return note}
+  function renderNotes(){[['distractions','distractionList','暂时没有杂念，安心回到眼前的任务。'],['ideas','ideaList','灵感会慢慢积累。休息回来再写也可以。']].forEach(([type,listId,hint])=>{const list=$(listId);list.replaceChildren();const items=[...s[type]].reverse().slice(0,20);if(items.length===0){const empty=document.createElement('div');empty.className='note-empty';empty.textContent=hint;list.append(empty)}else items.forEach(item=>list.append(noteElement(item,type)))});$('distractionCount').textContent=`${s.distractions.length} 条`;$('ideasCount').textContent=`${s.ideas.length} 条灵感`}
+  function addNote(type,inputId){const val=$(inputId).value.trim();if(!val)return;s[type].push({id:uid(),text:val,time:new Date().toISOString(),date:localDay()});$(inputId).value='';save();renderNotes();renderStats();toast(type==='ideas'?'灵感已保存。先记录，稍后再检验。':'已暂存，继续专注眼前的任务。')}
+  function renderPrompt(){const arr=s.timer.phase==='focus'?focusPrompts:breakPrompts;const prompt=arr[s.promptIndex%arr.length];$('promptTitle').textContent=prompt[0];$('promptText').textContent=prompt[1];$('promptFoot').textContent=prompt[2]}
+  function renderStats(){const today=localDay(),ses=s.sessions.filter(v=>v.date===today),f=ses.filter(v=>v.phase==='focus'),r=ses.filter(v=>v.phase==='break'),minutes=f.reduce((a,b)=>a+b.minutes,0),ideas=s.ideas.filter(v=>v.date===today).length;$('statFocus').innerHTML=`${f.length}<span>次</span>`;$('statTime').innerHTML=`${minutes}<span>分钟</span>`;$('statBreaks').innerHTML=`${r.length}<span>次</span>`;$('statIdeas').innerHTML=`${ideas}<span>条</span>`;$('marker').textContent=f.length;renderChart()}
+  function renderChart(){const dates=Array.from({length:7},(_,i)=>{const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()-(6-i));return {day:localDay(d),label:new Intl.DateTimeFormat('zh-CN',{month:'numeric',day:'numeric'}).format(d)}});const values=dates.map(({day})=>s.sessions.filter(v=>v.date===day&&v.phase==='focus').reduce((sum,v)=>sum+v.minutes,0));const mx=Math.max(...values,1),frame=$('chartBars'),axis=$('chartDays');frame.replaceChildren();axis.replaceChildren();dates.forEach((d,i)=>{const col=document.createElement('div');col.className='chart-col';const bar=document.createElement('div');bar.className='chart-bar'+(i===6?' today':'');bar.style.height=`${Math.max(3,values[i]/mx*86)}px`;bar.title=`${d.label}：${values[i]} 分钟`;const n=document.createElement('span');n.className='chart-figure';n.textContent=values[i]===0?'':values[i]+'m';bar.append(n);col.append(bar);frame.append(col);const label=document.createElement('span');label.textContent=i===6?'今天':d.label;axis.append(label)});$('weekSum').textContent=`7 天共 ${values.reduce((a,b)=>a+b,0)} 分钟`}
+  function renderEverything(){renderTimer();renderTasks();renderNotes();renderStats();renderPrompt();$('coreQuestion').value=s.question;$('themeBtn').textContent=s.settings.theme==='light'?'☾':'☼';document.body.classList.toggle('light',s.settings.theme==='light');}
+  function exportData(){const data={exportedAt:new Date().toISOString(),description:'Pulse Lab 本地任务、灵感与计时记录',...s,timer:{...s.timer,running:false,endsAt:null,remaining:actualRemaining()}};const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json;charset=utf-8'});const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`Pulse-Lab-记录-${localDay()}.json`;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);toast('已导出 JSON 记录文件')}
+  // Restore a running countdown by absolute deadline. An elapsed session is registered only once.
+  function restore(){if(s.timer.running){if(Number.isFinite(s.timer.endsAt)){if(s.timer.endsAt<=Date.now()){finishPhase();}else s.timer.remaining=actualRemaining()}else{s.timer.running=false;s.timer.endsAt=null;save()}}}
+  $('startPauseBtn').addEventListener('click',startPause);$('resetBtn').addEventListener('click',resetTimer);$('skipBtn').addEventListener('click',skipPhase);
+  $('focusMin').addEventListener('change',updateSettings);$('breakMin').addEventListener('change',updateSettings);
+  document.querySelectorAll('.preset').forEach(b=>b.addEventListener('click',()=>preset(Number(b.dataset.focus),Number(b.dataset.break))));
+  $('taskForm').addEventListener('submit',e=>{e.preventDefault();addTask()});
+  $('distractionForm').addEventListener('submit',e=>{e.preventDefault();addNote('distractions','distractionInput')});
+  $('ideaForm').addEventListener('submit',e=>{e.preventDefault();addNote('ideas','ideaInput')});
+  $('coreQuestion').addEventListener('input',e=>{s.question=e.target.value;save()});
+  $('promptBtn').addEventListener('click',()=>{s.promptIndex++;save();renderPrompt()});
+  $('themeBtn').addEventListener('click',()=>{s.settings.theme=s.settings.theme==='light'?'dark':'light';save();renderEverything()});
+  $('zenBtn').addEventListener('click',()=>{const on=document.body.classList.toggle('zen');$('zenText').textContent=on?'退出沉浸':'沉浸模式';$('zenBtn').setAttribute('aria-pressed',String(on));window.scrollTo({top:0,behavior:'smooth'})});
+  $('notifyBtn').addEventListener('click',async()=>{if(!('Notification' in window)){toast('此浏览器不支持系统通知；计时器仍可正常使用');return}if(Notification.permission==='granted'){s.settings.sound=!s.settings.sound;save();$('notifyBtn').textContent=s.settings.sound?'♫ 声音提醒已开':'♧ 系统通知已开';toast(s.settings.sound?'已开启提示音与系统通知':'系统通知已启用；提示音已关闭');return}try{const p=await Notification.requestPermission();toast(p==='granted'?'通知权限已启用。浏览器后台计时结束时可发送提醒。':'未开启系统通知；计时仍可正常使用。');$('notifyBtn').textContent=p==='granted'?'♧ 系统通知已开':'♧ 开启完成提醒'}catch(e){toast('系统通知不可用。某些本地文件环境会限制此功能。')}});
+  $('saveReflection').addEventListener('click',()=>{const val=$('reflectionInput').value.trim();if(val){const entry=[...s.sessions].reverse().find(v=>v.phase==='focus'&&!v.reflection);if(entry)entry.reflection=val;save();} $('reflectionModal').hidden=true;toast('专注已记录。现在离开屏幕，给自己一段休息。')});
+  $('skipReflection').addEventListener('click',()=>{$('reflectionModal').hidden=true;toast('已进入休息阶段。现在可以离开屏幕。')});
+  $('exportBtn').addEventListener('click',exportData);
+  $('clearBtn').addEventListener('click',()=>{if(!confirm('确定清空所有任务、笔记、灵感与历史统计吗？此操作无法撤销。'))return;const theme=s.settings.theme;s=defaultState();s.settings.theme=theme;save();renderEverything();toast('本地记录已清空')});
+  window.addEventListener('keydown',e=>{if(e.code==='Space'&&!e.repeat&&!['INPUT','TEXTAREA','BUTTON','SELECT'].includes(document.activeElement?.tagName)&&$('reflectionModal').hidden){e.preventDefault();startPause()}if(e.key==='Escape'&&!$('reflectionModal').hidden){$('skipReflection').click()}else if(e.key==='Escape'&&document.body.classList.contains('zen')){$('zenBtn').click()}});
+  window.addEventListener('focus',updateTimer);document.addEventListener('visibilitychange',()=>{if(!document.hidden)updateTimer()});
+  restore();renderEverything();setupDate();if('Notification' in window&&Notification.permission==='granted')$('notifyBtn').textContent='♧ 系统通知已开';setInterval(updateTimer,350);
+})();
+</script>
+</body>
+</html>
