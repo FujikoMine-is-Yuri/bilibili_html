@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>vLLM高效推理交互导学工具</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #0f172a;
+  color: #e2e8f0;
+  line-height: 1.6;
+  padding: 1rem;
+  max-width: 900px;
+  margin: 0 auto;
+}
+h1 { font-size: 1.75rem; color: #2dd4bf; margin-bottom: 0.5rem; }
+h2 { font-size: 1.25rem; color: #2dd4bf; margin-bottom: 0.5rem; }
+h3 { font-size: 1rem; color: #a7f3d0; margin-bottom: 0.75rem; }
+.card {
+  background: #1e293b;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2);
+}
+.section-desc { color: #94a3b8; margin-bottom: 1rem; font-size: 0.95rem; }
+.source-badge {
+  display: inline-block;
+  background: rgba(45, 212, 191, 0.1);
+  border: 1px solid #2dd4bf;
+  color: #2dd4bf;
+  padding: 0.375rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+}
+.params-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.param-item { display: flex; flex-direction: column; gap: 0.5rem; }
+.param-item label { font-size: 0.9rem; color: #cbd5e1; }
+.radio-group, .checkbox-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+.radio-label, .checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  padding: 0.5rem 0.75rem;
+  background: #0f172a;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+.result-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+.result-item {
+  background: #0f172a;
+  padding: 1rem;
+  border-radius: 8px;
+  text-align: center;
+}
+.result-label { font-size: 0.8rem; color: #94a3b8; margin-bottom: 0.25rem; }
+.result-value { font-size: 1.4rem; font-weight: bold; color: #2dd4bf; }
+.vram-visual {
+  height: 40px;
+  background: #0f172a;
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  margin: 1rem 0;
+}
+.vram-segment {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  color: white;
+  font-weight: 500;
+}
+.knowledge-note, .tip, .risk-tip, .storage-tip {
+  padding: 0.75rem;
+  border-radius: 8px;
+  line-height: 1.5;
+  font-size: 0.9rem;
+}
+.knowledge-note {
+  margin-top: 0.75rem;
+  background: rgba(139, 92, 246, 0.1);
+  border: 1px solid #8b5cf6;
+  color: #c4b5fd;
+}
+.tip {
+  background: rgba(45, 212, 191, 0.1);
+  border: 1px solid #2dd4bf;
+  color: #2dd4bf;
+  margin: 1rem 0;
+  min-height: 1.2rem;
+}
+.tip.error {
+  background: rgba(248, 113, 113, 0.1);
+  border-color: #f87171;
+  color: #f87171;
+}
+.risk-tip {
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid #f59e0b;
+  color: #fbbf24;
+  margin-top: 1rem;
+}
+.storage-tip {
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid #f59e0b;
+  color: #fbbf24;
+  margin-bottom: 1rem;
+}
+.btn {
+  background: #334155;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.25rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: background 0.2s;
+  display: inline-block;
+}
+.btn:hover { background: #475569; }
+.btn.primary { background: #2dd4bf; color: #0f172a; font-weight: bold; }
+.btn.primary:hover { background: #14b8a6; }
+.btn.danger { background: #ef4444; }
+.btn.danger:hover { background: #dc2626; }
+.btn-sm { padding: 0.25rem 0.75rem; font-size: 0.8rem; }
+.step { margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid #334155; }
+.step:last-of-type { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.report-card {
+  background: #0f172a;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-top: 1rem;
+  border: 1px solid #2dd4bf;
+}
+.report-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid #334155;
+  font-size: 0.95rem;
+}
+.report-item:last-of-type { border-bottom: none; }
+.report-item span:first-child { color: #94a3b8; }
+.report-item span:last-child { color: #a7f3d0; font-weight: 500; }
+.record-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.record-list { list-style: none; }
+.record-list li {
+  background: #0f172a;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+}
+.record-list li strong { color: #2dd4bf; }
+.source-section p { margin-bottom: 0.75rem; font-size: 0.9rem; }
+.copy-link { color: #2dd4bf; text-decoration: underline; }
+.disclaimer { color: #fbbf24; font-weight: 500; margin-top: 1rem !important; }
+.hidden { display: none !important; }
+footer { text-align: center; color: #64748b; padding: 1rem; font-size: 0.85rem; }
+
+/* 焦点样式 */
+input:focus, button:focus, label:focus-within {
+  outline: 2px solid #2dd4bf;
+  outline-offset: 2px;
+}
+
+/* 滑块样式 */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  background: #334155;
+  border-radius: 3px;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  background: #2dd4bf;
+  border-radius: 50%;
+  cursor: pointer;
+}
+input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  background: #2dd4bf;
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+}
+
+input[type="radio"], input[type="checkbox"] {
+  accent-color: #2dd4bf;
+  width: 16px;
+  height: 16px;
+}
+
+@media (max-width: 640px) {
+  body { padding: 0.75rem; }
+  .card { padding: 1rem; }
+  h1 { font-size: 1.5rem; }
+  .result-value { font-size: 1.2rem; }
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>vLLM高效推理交互导学工具</h1>
+  <p>通过动手调参掌握LLM推理显存优化与部署权衡核心逻辑</p>
+  <div class="source-badge">📚 知识点来源：吴恩达×Red Hat vLLM课程 | 交互设计为教学补充</div>
+</header>
+
+<main>
+  <section class="card" id="simulator-section">
+    <h2>1. KV缓存显存对比模拟器</h2>
+    <p class="section-desc">调整参数，直观对比传统KV缓存与PagedAttention的显存效率差异</p>
+    <div class="params-grid">
+      <div class="param-item">
+        <label for="concurrency">并发请求数: <span id="concurrency-val">50</span></label>
+        <input type="range" id="concurrency" min="1" max="200" value="50" aria-label="并发请求数">
+      </div>
+      <div class="param-item">
+        <label for="ctx-length">单请求上下文长度: <span id="ctx-length-val">8</span>K</label>
+        <input type="range" id="ctx-length" min="1" max="32" value="8" aria-label="单请求上下文长度">
+      </div>
+      <div class="param-item">
+        <label for="gpu-count">80GB GPU数量: <span id="gpu-count-val">4</span></label>
+        <input type="range" id="gpu-count" min="2" max="8" value="4" aria-label="80GB GPU数量">
+      </div>
+      <div class="param-item">
+        <label>KV缓存模式</label>
+        <div class="radio-group" role="radiogroup" aria-label="KV缓存模式">
+          <label class="radio-label"><input type="radio" name="kv-mode" value="traditional" checked> 传统预分配</label>
+          <label class="radio-label"><input type="radio" name="kv-mode" value="paged"> PagedAttention</label>
+        </div>
+      </div>
+    </div>
+    <div class="result-grid">
+      <div class="result-item">
+        <div class="result-label">总显存占用</div>
+        <div class="result-value" id="total-vram">-- GB</div>
+      </div>
+      <div class="result-item">
+        <div class="result-label">显存浪费率</div>
+        <div class="result-value" id="waste-rate">-- %</div>
+      </div>
+      <div class="result-item">
+        <div class="result-label">可承载最大并发</div>
+        <div class="result-value" id="max-concurrency">--</div>
+      </div>
+    </div>
+    <div class="vram-visual" id="vram-visual" aria-label="显存占用可视化"></div>
+    <div class="tip" id="sim-tip"></div>
+    <button class="btn" id="save-sim-btn">保存本次模拟记录</button>
+  </section>
+
+  <section class="card" id="deployment-section">
+    <h2>2. vLLM部署全流程闯关</h2>
+    <p class="section-desc">按步骤选择部署方案，生成专属权衡报告，掌握全链路优化逻辑</p>
+    <div class="step">
+      <h3>步骤1：选择量化精度</h3>
+      <div class="radio-group" role="radiogroup" aria-label="量化精度">
+        <label class="radio-label"><input type="radio" name="quant" value="fp16" checked> FP16</label>
+        <label class="radio-label"><input type="radio" name="quant" value="int8"> INT8</label>
+        <label class="radio-label"><input type="radio" name="quant" value="int4"> INT4</label>
+      </div>
+      <div class="knowledge-note" id="quant-note">💡 FP16：半精度浮点，无精度损失，70B模型权重约140GB，为推理基准精度。</div>
+    </div>
+    <div class="step">
+      <h3>步骤2：选择vLLM优化项（可多选）</h3>
+      <div class="checkbox-group" aria-label="vLLM优化项">
+        <label class="checkbox-label"><input type="checkbox" name="optim" value="paged"> PagedAttention</label>
+        <label class="checkbox-label"><input type="checkbox" name="optim" value="continuous_batching"> 连续批处理</label>
+        <label class="checkbox-label"><input type="checkbox" name="optim" value="prefix_caching"> 前缀缓存</label>
+        <label class="checkbox-label"><input type="checkbox" name="optim" value="tensor_parallel"> 张量并行</label>
+      </div>
+      <div class="knowledge-note" id="optim-note">💡 选择优化项后查看对应知识点</div>
+    </div>
+    <div class="step">
+      <h3>步骤3：选择核心测试指标（可多选）</h3>
+      <div class="checkbox-group" aria-label="核心测试指标">
+        <label class="checkbox-label"><input type="checkbox" name="metric" value="latency"> 延迟</label>
+        <label class="checkbox-label"><input type="checkbox" name="metric" value="throughput"> 吞吐量</label>
+        <label class="checkbox-label"><input type="checkbox" name="metric" value="accuracy"> 精度</label>
+      </div>
+      <div class="knowledge-note" id="metric-note">💡 不同场景对应不同核心指标，对话类关注延迟，批量处理关注吞吐量。</div>
+    </div>
+    <button class="btn primary" id="gen-report-btn">生成部署方案报告</button>
+    <div class="report-card hidden" id="report-card">
+      <h3>📋 你的专属部署方案</h3>
+      <div class="report-item"><span>精度损失范围：</span><span id="report-accuracy">--</span></div>
+      <div class="report-item"><span>吞吐提升比例：</span><span id="report-throughput">--</span></div>
+      <div class="report-item"><span>成本变化：</span><span id="report-cost">--</span></div>
+      <div class="report-item"><span>适用场景：</span><span id="report-scenario">--</span></div>
+      <div class="risk-tip hidden" id="report-risk"></div>
+    </div>
+  </section>
+
+  <section class="card" id="records-section">
+    <h2>我的学习记录</h2>
+    <div class="record-actions">
+      <button class="btn" id="export-btn">导出记录</button>
+      <label class="btn" for="import-input">导入记录</label>
+      <input type="file" id="import-input" accept=".json" hidden aria-label="导入记录文件">
+      <button class="btn danger" id="clear-btn">清空记录</button>
+    </div>
+    <div class="storage-tip hidden" id="storage-tip">⚠️ 本地存储不可用，记录仅保存在当前页面内存中，刷新后会丢失</div>
+    <ul class="record-list" id="record-list"></ul>
+  </section>
+
+  <section class="card source-section">
+    <h2>资料来源与说明</h2>
+    <p><strong>视频来源：</strong>吴恩达×Red Hat《Fast & Efficient LLM Inference with vLLM》（B站：<span class="copy-link">BV1YiEc6GE6y</span> <button class="btn btn-sm" id="copy-link-btn">复制链接</button>）</p>
+    <p><strong>原视频核心观点：</strong>传统KV缓存按最大上下文预分配整块显存，浪费60%-80%；PagedAttention将KV缓存拆为固定大小页，大幅提升并发承载；70B模型FP16权重约140GB，8K上下文单请求KV缓存约2.5GB，32K约10GB；部署全链路为「模型量化→vLLM服务→基准测试」，需平衡精度、速度、成本三者关系。</p>
+    <p><strong>设计补充说明：</strong>参数模拟逻辑、显存可视化交互、部署闯关路径、方案生成逻辑为教学新增设计，基础知识点与参考参数来自原课程。音频转写可能存在错漏，以原视频内容为准。</p>
+    <p class="disclaimer">⚠️ 本工具为教学演示用途，模拟数据仅供参考，不构成生产环境建议，未经过科学验证。</p>
+  </section>
+</main>
+
+<footer>
+  <p>vLLM高效推理交互导学工具 | 教学演示用</p>
+</footer>
+
+<script>
+// 存储相关
+let records = [];
+const STORAGE_KEY = 'vllm_learning_records';
+
+function initStorage() {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      records = JSON.parse(stored);
+      if (!Array.isArray(records)) records = [];
+    }
+  } catch (e) {
+    records = [];
+    document.getElementById('storage-tip').classList.remove('hidden');
+  }
+}
+
+function saveRecords() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+  } catch (e) {}
+}
+
+function addRecord(record) {
+  records.unshift(record);
+  if (records.length > 50) records = records.slice(0, 50);
+  saveRecords();
+  renderRecords();
+}
+
+function renderRecords() {
+  const listEl = document.getElementById('record-list');
+  listEl.innerHTML = '';
+  if (records.length === 0) {
+    listEl.innerHTML = '<li>暂无记录，快去使用模拟器和闯关功能吧！</li>';
+    return;
+  }
+  records.forEach((record, index) => {
+    const li = document.createElement('li');
+    const date = new Date(record.timestamp).toLocaleString();
+    let content = '';
+    if (record.type === 'simulator') {
+      const p = record.params;
+      const r = record.result;
+      content = `
+        <div><strong>[模拟记录]</strong> ${date}</div>
+        <div>并发: ${p.concurrency} | 上下文: ${p.ctxLength}K | GPU: ${p.gpuCount}张 | 模式: ${p.kvMode === 'traditional' ? '传统预分配' : 'PagedAttention'}</div>
+        <div>显存占用: ${r.totalUsedVram}/${r.totalVram}GB | 浪费率: ${r.wasteRate}% | 最大并发: ${r.maxConcurrency}</div>
+      `;
+    } else if (record.type === 'deployment') {
+      const p = record.params;
+      const r = record.result;
+      const optimMap = {paged:'PagedAttention', continuous_batching:'连续批处理', prefix_caching:'前缀缓存', tensor_parallel:'张量并行'};
+      const metricMap = {latency:'延迟', throughput:'吞吐量', accuracy:'精度'};
+      content = `
+        <div><strong>[部署方案]</strong> ${date}</div>
+        <div>量化: ${p.quant.toUpperCase()} | 优化: ${p.optims.length ? p.optims.map(o => optimMap[o] || o).join('、') : '无'}</div>
+        <div>指标: ${p.metrics.map(m => metricMap[m] || m).join('、')} | 场景: ${r.scenario}</div>
+        <div>精度损失: ${r.accuracyLoss} | 吞吐提升: ${r.throughputGain} | 成本变化: ${r.costChange}</div>
+      `;
+    }
+    li.innerHTML = content;
+    const delBtn = document.createElement('button');
+    delBtn.textContent = '删除';
+    delBtn.className = 'btn danger btn-sm';
+    delBtn.style.marginTop = '0.5rem';
+    delBtn.addEventListener('click', () => {
+      records.splice(index, 1);
+      saveRecords();
+      renderRecords();
+    });
+    li.appendChild(delBtn);
+    listEl.appendChild(li);
+  });
+}
+
+// 模拟器逻辑
+const concurrencyEl = document.getElementById('concurrency');
+const ctxLengthEl = document.getElementById('ctx-length');
+const gpuCountEl = document.getElementById('gpu-count');
+
+function updateSliderValues() {
+  document.getElementById('concurrency-val').textContent = concurrencyEl.value;
+  document.getElementById('ctx-length-val').textContent = ctxLengthEl.value;
+  document.getElementById('gpu-count-val').textContent = gpuCountEl.value;
+}
+
+function calculateSimulator() {
+  updateSliderValues();
+  const concurrency = parseInt(concurrencyEl.value);
+  const ctxLength = parseInt(ctxLengthEl.value);
+  const gpuCount = parseInt(gpuCountEl.value);
+  const kvMode = document.querySelector('input[name="kv-mode"]:checked').value;
+
+  const totalVram = gpuCount * 80;
+  const weightVram = 140; // 70B FP16
+  const availableKvVram = totalVram - weightVram;
+  const perRequestActualKv = ctxLength * 0.3125; // 8K=2.5GB
+
+  let perRequestAllocatedKv, wasteRate, totalKvUsed, maxConcurrency;
+
+  if (kvMode === 'traditional') {
+    perRequestAllocatedKv = 32 * 0.3125; // 预分配最大32K=10GB
+    totalKvUsed = concurrency * perRequestAllocatedKv;
+    const actualUsed = concurrency * perRequestActualKv;
+    wasteRate = totalKvUsed > 0 ? ((totalKvUsed - actualUsed) / totalKvUsed * 100).toFixed(1) : 0;
+    maxConcurrency = availableKvVram > 0 ? Math.floor(availableKvVram / perRequestAllocatedKv) : 0;
+  } else {
+    perRequestAllocatedKv = perRequestActualKv * 1.05; // 5%页表开销
+    totalKvUsed = concurrency * perRequestAllocatedKv;
+    wasteRate = '5.0';
+    maxConcurrency = availableKvVram > 0 ? Math.floor(availableKvVram / perRequestAllocatedKv) : 0;
+  }
+
+  const totalUsedVram = weightVram + totalKvUsed;
+  const overflow = totalUsedVram > totalVram;
+
+  // 更新数值
+  document.getElementById('total-vram').textContent = `${totalUsedVram.toFixed(1)} / ${totalVram} GB`;
+  document.getElementById('waste-rate').textContent = `${wasteRate} %`;
+  document.getElementById('max-concurrency').textContent = Math.max(0, maxConcurrency);
+
+  // 更新提示
+  const tipEl = document.getElementById('sim-tip');
+  if (availableKvVram <= 0) {
+    tipEl.textContent = '⚠️ GPU显存不足以容纳模型权重，请增加GPU数量';
+    tipEl.classList.add('error');
+  } else if (overflow) {
+    tipEl.textContent = `⚠️ 显存溢出！当前并发超过最大承载（${maxConcurrency}）。建议：${kvMode === 'traditional' ? '开启PagedAttention、' : ''}增加GPU数量、降低上下文长度`;
+    tipEl.classList.add('error');
+  } else {
+    tipEl.textContent = `✅ 显存充足，当前并发下${kvMode === 'traditional' ? '传统预分配模式' : 'PagedAttention模式'}运行正常`;
+    tipEl.classList.remove('error');
+  }
+
+  // 可视化
+  const visualEl = document.getElementById('vram-visual');
+  visualEl.innerHTML = '';
+
+  if (availableKvVram <= 0) {
+    const seg = document.createElement('div');
+    seg.className = 'vram-segment';
+    seg.style.width = '100%';
+    seg.style.background = '#ef4444';
+    seg.textContent = '权重溢出';
+    visualEl.appendChild(seg);
+    return { type: 'simulator', timestamp: Date.now(), params: { concurrency, ctxLength, gpuCount, kvMode }, result: { totalUsedVram: totalUsedVram.toFixed(1), totalVram, wasteRate, maxConcurrency, overflow } };
+  }
+
+  // 权重段
+  const weightPercent = Math.min((weightVram / totalVram) * 100, 100);
+  const weightSeg = document.createElement('div');
+  weightSeg.className = 'vram-segment';
+  weightSeg.style.width = `${weightPercent}%`;
+  weightSeg.style.background = '#8b5cf6';
+  if (weightPercent > 10) weightSeg.textContent = '权重';
+  visualEl.appendChild(weightSeg);
+
+  // KV段
+  const kvPercent = Math.min((totalKvUsed / totalVram) * 100, 100 - weightPercent);
+  if (kvPercent > 0) {
+    const kvSeg = document.createElement('div');
+    kvSeg.className = 'vram-segment';
+    kvSeg.style.width = `${kvPercent}%`;
+    if (kvMode === 'traditional') {
+      const actualPercent = (concurrency * perRequestActualKv / totalVram) * 100;
+      const wastePercent = kvPercent - actualPercent;
+      kvSeg.style.display = 'flex';
+      const actualPart = document.createElement('div');
+      actualPart.style.width = `${(actualPercent / kvPercent) * 100}%`;
+      actualPart.style.height = '100%';
+      actualPart.style.display = 'flex';
+      actualPart.style.alignItems = 'center';
+      actualPart.style.justifyContent = 'center';
+      actualPart.style.background = '#2dd4bf';
+      if (actualPercent > 8) actualPart.textContent = 'KV';
+      const wastePart = document.createElement('div');
+      wastePart.style.width = `${(wastePercent / kvPercent) * 100}%`;
+      wastePart.style.height = '100%';
+      wastePart.style.display = 'flex';
+      wastePart.style.alignItems = 'center';
+      wastePart.style.justifyContent = 'center';
+      wastePart.style.background = '#475569';
+      if (wastePercent > 8) wastePart.textContent = '浪费';
+      kvSeg.appendChild(actualPart);
+      kvSeg.appendChild(wastePart);
+    } else {
+      kvSeg.style.background = 'repeating-linear-gradient(90deg, #2dd4bf 0px, #2dd4bf 4px, #0f172a 4px, #0f172a 6px)';
+      if (kvPercent > 10) kvSeg.textContent = '分页KV';
+    }
+    visualEl.appendChild(kvSeg);
+  }
+
+  // 溢出或可用
+  if (overflow) {
+    const overflowPercent = ((totalUsedVram - totalVram) / totalVram) * 100;
+    const overflowSeg = document.createElement('div');
+    overflowSeg.className = 'vram-segment';
+    overflowSeg.style.width = `${overflowPercent}%`;
+    overflowSeg.style.background = '#ef4444';
+    overflowSeg.textContent = '溢出';
+    visualEl.appendChild(overflowSeg);
+  } else {
+    const freePercent = 100 - weightPercent - kvPercent;
+    if (freePercent > 0) {
+      const freeSeg = document.createElement('div');
+      freeSeg.className = 'vram-segment';
+      freeSeg.style.width = `${freePercent}%`;
+      freeSeg.style.background = '#334155';
+      if (freePercent > 8) freeSeg.textContent = '可用';
+      visualEl.appendChild(freeSeg);
+    }
+  }
+
+  return {
+    type: 'simulator',
+    timestamp: Date.now(),
+    params: { concurrency, ctxLength, gpuCount, kvMode },
+    result: { totalUsedVram: totalUsedVram.toFixed(1), totalVram, wasteRate, maxConcurrency, overflow }
+  };
+}
+
+// 部署闯关逻辑
+const quantNotes = {
+  fp16: '💡 FP16：半精度浮点，无精度损失，70B模型权重约140GB，为推理基准精度，适合对精度要求极高的场景。',
+  int8: '💡 INT8：8位整数量化，精度损失通常小于1%，权重显存减半至约70GB，推理速度提升约20%，是生产环境常用的平衡选项。',
+  int4: '💡 INT4：4位整数量化，精度损失约2-5%（视模型与量化方法），权重显存降至约35GB，推理速度提升约40%，适合显存受限的多并发场景。'
+};
+const optimNotes = {
+  paged: '✅ PagedAttention：vLLM核心技术，将KV缓存拆分为固定大小的页，解决传统连续分配的显存浪费与碎片问题，可提升数倍并发能力。',
+  continuous_batching: '✅ 连续批处理：按迭代步骤（而非整个请求）调度批次，大幅提升GPU利用率，吞吐量可提升30-100%，是高并发场景的必备优化。',
+  prefix_caching: '✅ 前缀缓存：对相同前缀的请求（如系统提示、通用指令）共享KV缓存，可显著降低重复计算与显存占用，适合多轮对话、RAG等场景。',
+  tensor_parallel: '✅ 张量并行：将模型权重拆分为多块分布到不同GPU，降低单卡显存压力，支持更大模型部署，需配合多GPU使用。'
+};
+const metricNotes = {
+  latency: '⏱️ 延迟：单请求从发送到收到首个token的时间，是对话类、交互式场景的核心指标。',
+  throughput: '📊 吞吐量：单位时间内处理的token总数，是批量处理、离线推理场景的核心指标。',
+  accuracy: '🎯 精度：模型输出结果的准确性，是知识问答、代码生成等对质量要求高的场景的核心指标。'
+};
+
+function generateReport() {
+  const quant = document.querySelector('input[name="quant"]:checked').value;
+  const optims = Array.from(document.querySelectorAll('input[name="optim"]:checked')).map(i => i.value);
+  const metrics = Array.from(document.querySelectorAll('input[name="metric"]:checked')).map(i => i.value);
+
+  if (metrics.length === 0) {
+    alert('请至少选择一个核心测试指标');
+    return null;
+  }
+
+  // 精度损失
+  let accuracyLoss = { fp16: '无损失', int8: '< 1%', int4: '2% - 5%' }[quant];
+
+  // 吞吐提升
+  let throughputMultiplier = 1;
+  throughputMultiplier *= { fp16: 1, int8: 1.2, int4: 1.4 }[quant];
+  if (optims.includes('paged')) throughputMultiplier *= 1.3;
+  if (optims.includes('continuous_batching')) throughputMultiplier *= 1.6;
+  if (optims.includes('prefix_caching')) throughputMultiplier *= 1.25;
+  if (optims.includes('tensor_parallel')) throughputMultiplier *= 1.2;
+  const throughputGain = `+${((throughputMultiplier - 1) * 100).toFixed(0)}%`;
+
+  // 成本变化
+  let requiredGpus = { fp16: 2, int8: 1, int4: 1 }[quant];
+  if (optims.includes('tensor_parallel')) requiredGpus = Math.max(requiredGpus, 2);
+  const costChange = ((requiredGpus / 2 - 1) * 100).toFixed(0);
+  const costText = costChange >= 0 ? `+${costChange}%` : `${costChange}%`;
+
+  // 适用场景
+  const scenarioMap = { latency: '对话交互', throughput: '批量处理', accuracy: '高精度需求' };
+  const scenarioText = metrics.map(m => scenarioMap[m]).join('、');
+
+  // 风险检查
+  let risks = [];
+  if (quant === 'int4' && !metrics.includes('accuracy')) {
+    risks.push('您选择了INT4量化（精度损失2-5%）但未选择精度测试，建议补充精度验证以确保输出质量符合要求。');
+  }
+  if (optims.includes('prefix_caching') && !optims.includes('paged')) {
+    risks.push('前缀缓存依赖PagedAttention实现，未开启PagedAttention时该优化无法生效。');
+  }
+  if (optims.includes('tensor_parallel')) {
+    risks.push('张量并行需要多GPU环境支持，请确保部署环境有至少2张80GB GPU。');
+  }
+
+  // 更新报告
+  document.getElementById('report-accuracy').textContent = accuracyLoss;
+  document.getElementById('report-throughput').textContent = throughputGain;
+  document.getElementById('report-cost').textContent = costText;
+  document.getElementById('report-scenario').textContent = scenarioText;
+
+  const riskEl = document.getElementById('report-risk');
+  if (risks.length > 0) {
+    riskEl.innerHTML = '⚠️ <strong>风险提示：</strong>' + risks.join('<br>');
+    riskEl.classList.remove('hidden');
+  } else {
+    riskEl.classList.add('hidden');
+  }
+
+  document.getElementById('report-card').classList.remove('hidden');
+
+  return {
+    type: 'deployment',
+    timestamp: Date.now(),
+    params: { quant, optims, metrics },
+    result: { accuracyLoss, throughputGain, costChange: costText, scenario: scenarioText, risks }
+  };
+}
+
+// 事件绑定
+concurrencyEl.addEventListener('input', calculateSimulator);
+ctxLengthEl.addEventListener('input', calculateSimulator);
+gpuCountEl.addEventListener('input', calculateSimulator);
+document.querySelectorAll('input[name="kv-mode"]').forEach(r => r.addEventListener('change', calculateSimulator));
+
+document.querySelectorAll('input[name="quant"]').forEach(radio => {
+  radio.addEventListener('change', (e) => {
+    document.getElementById('quant-note').textContent = quantNotes[e.target.value];
+  });
+});
+
+document.querySelectorAll('input[name="optim"]').forEach(cb => {
+  cb.addEventListener('change', () => {
+    const selected = Array.from(document.querySelectorAll('input[name="optim"]:checked')).map(i => i.value);
+    const noteEl = document.getElementById('optim-note');
+    noteEl.innerHTML = selected.length === 0 ? '💡 选择优化项后查看对应知识点' : selected.map(s => optimNotes[s]).join('<br>');
+  });
+});
+
+document.querySelectorAll('input[name="metric"]').forEach(cb => {
+  cb.addEventListener('change', () => {
+    const selected = Array.from(document.querySelectorAll('input[name="metric"]:checked')).map(i => i.value);
+    const noteEl = document.getElementById('metric-note');
+    noteEl.innerHTML = selected.length === 0 ? '💡 不同场景对应不同核心指标，对话类关注延迟，批量处理关注吞吐量。' : selected.map(s => metricNotes[s]).join('<br>');
+  });
+});
+
+document.getElementById('save-sim-btn').addEventListener('click', () => {
+  const result = calculateSimulator();
+  addRecord(result);
+  alert('模拟记录已保存');
+});
+
+document.getElementById('gen-report-btn').addEventListener('click', () => {
+  const result = generateReport();
+  if (result) {
+    addRecord(result);
+  }
+});
+
+// 导出导入
+document.getElementById('export-btn').addEventListener('click', () => {
+  const blob = new Blob([JSON.stringify(records, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `vllm-learning-records-${Date.now()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+document.getElementById('import-input').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (!Array.isArray(data)) throw new Error('格式错误');
+      const validRecords = data.filter(item => {
+        if (typeof item !== 'object' || !item.type || !item.timestamp || !item.params || !item.result) return false;
+        if (item.type === 'simulator') {
+          const p = item.params, r = item.result;
+          return typeof p.concurrency === 'number' && typeof p.ctxLength === 'number' &&
+                 typeof p.gpuCount === 'number' && typeof p.kvMode === 'string' &&
+                 typeof r.totalUsedVram === 'string' && typeof r.totalVram === 'number' &&
+                 typeof r.wasteRate === 'string' && typeof r.maxConcurrency === 'number';
+        } else if (item.type === 'deployment') {
+          const p = item.params, r = item.result;
+          return typeof p.quant === 'string' && Array.isArray(p.optims) && Array.isArray(p.metrics) &&
+                 typeof r.accuracyLoss === 'string' && typeof r.throughputGain === 'string' &&
+                 typeof r.costChange === 'string' && typeof r.scenario === 'string';
+        }
+        return false;
+      });
+      if (validRecords.length === 0) { alert('未找到有效记录'); return; }
+      const existingTs = new Set(records.map(r => r.timestamp));
+      const newRecords = validRecords.filter(r => !existingTs.has(r.timestamp));
+      records = [...newRecords, ...records].sort((a,b) => b.timestamp - a.timestamp).slice(0, 50);
+      saveRecords();
+      renderRecords();
+      alert(`成功导入 ${newRecords.length} 条记录`);
+    } catch (err) {
+      alert('导入失败：文件格式不正确');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+});
+
+document.getElementById('clear-btn').addEventListener('click', () => {
+  if (confirm('确定要清空所有记录吗？')) {
+    records = [];
+    saveRecords();
+    renderRecords();
+  }
+});
+
+document.getElementById('copy-link-btn').addEventListener('click', () => {
+  const link = 'https://www.bilibili.com/video/BV1YiEc6GE6y/';
+  navigator.clipboard.writeText(link).then(() => alert('链接已复制到剪贴板')).catch(() => alert('复制失败，请手动复制'));
+});
+
+// 初始化
+window.addEventListener('DOMContentLoaded', () => {
+  initStorage();
+  renderRecords();
+  calculateSimulator();
+});
+</script>
+</body>
+</html>
